@@ -4,9 +4,10 @@ import 'package:flutter_todo/models/task_model.dart';
 import 'package:intl/intl.dart';
 
 class AddTaskScreen extends StatefulWidget {
+  final Function updateTaskList;
   final Task task;
 
-  const AddTaskScreen({this.task});
+  const AddTaskScreen({this.updateTaskList, this.task});
 
   @override
   _AddTaskScreenState createState() => _AddTaskScreenState();
@@ -18,6 +19,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   String _priority;
   DateTime _date = DateTime.now();
   TextEditingController _dateController = TextEditingController();
+  String _note = '';
 
   final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
   final List<String> _priorities = ['Low', 'Medium', 'High'];
@@ -46,7 +48,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         initialDate: _date,
         firstDate: DateTime(2000),
         lastDate: DateTime(2100));
-    if (date != null && date != _date) {
+    if (date != null) {
       setState(() {
         _date = date;
       });
@@ -62,12 +64,13 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       Task task = Task(title: _title, date: _date, priority: _priority);
       if (widget.task == null) {
         task.status = 0;
-        DatabaseHelper.instance.updateTask(task);
+        DatabaseHelper.instance.insertTask(task);
       } else {
+        task.id = widget.task.id;
         task.status = widget.task.status;
         DatabaseHelper.instance.updateTask(task);
       }
-
+      widget.updateTaskList();
       Navigator.pop(context);
     }
   }
@@ -75,34 +78,22 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Icon(
+              Icons.arrow_back,
+            )),
+        title: widget.task == null ? Text('New Note') : Text('Edit Note'),
+      ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 80.0),
+            padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 40.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Icon(
-                    Icons.arrow_back_ios,
-                    size: 30.0,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-                SizedBox(height: 20.0),
-                Text(
-                  'Add Task',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 40.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(
-                  height: 10.0,
-                ),
                 Form(
                     key: _formKey,
                     child: Column(
@@ -132,11 +123,29 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             style: TextStyle(fontSize: 18.0),
                             onTap: _handleDatePicker,
                             decoration: InputDecoration(
-                                labelText: 'Date',
+                                prefixIcon: Icon(Icons.contacts),
+                                labelText: 'CHOOSE RECIPIENTS',
+                                alignLabelWithHint: true,
                                 labelStyle: TextStyle(fontSize: 18.0),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10.0),
                                 )),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20.0),
+                          child: TextFormField(
+                            minLines: 5,
+                            maxLines: 5,
+                            style: TextStyle(fontSize: 18.0),
+                            decoration: InputDecoration(
+                                labelText: 'Add a note',
+                                labelStyle: TextStyle(fontSize: 18.0),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                )),
+                            onSaved: (input) => _note = input,
+                            initialValue: _note,
                           ),
                         ),
                         Padding(

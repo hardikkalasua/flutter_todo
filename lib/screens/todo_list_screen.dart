@@ -47,10 +47,13 @@ class _TodoListScreenState extends State<TodoListScreen> {
                 _updateTaskList();
               },
               activeColor: Theme.of(context).accentColor,
-              value: true,
+              value: task.status == 1 ? true : false,
             ),
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => AddTaskScreen(task: task))),
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => AddTaskScreen(
+                        updateTaskList: _updateTaskList, task: task))),
           ),
           Divider()
         ],
@@ -65,7 +68,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
         backgroundColor: Theme.of(context).primaryColor,
         child: Icon(Icons.add),
         onPressed: () => Navigator.push(
-            context, MaterialPageRoute(builder: (_) => AddTaskScreen())),
+            context,
+            MaterialPageRoute(
+                builder: (_) => AddTaskScreen(
+                      updateTaskList: _updateTaskList,
+                    ))),
       ),
       body: FutureBuilder(
         future: _taskList,
